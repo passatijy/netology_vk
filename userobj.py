@@ -55,7 +55,7 @@ class VkUser():
 		return fr_list
 
 #token = input('Введите токен: ')
-token = 'b6437dac51769150c1953573d1dd2bb518b987b67af91eeb22b91e144a50c741198c191c887dd77bd9cdc'
+
 
 
 petrenko = VkUser('552646270',token)
