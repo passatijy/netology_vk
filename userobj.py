@@ -11,6 +11,7 @@ class VkUser():
 		self.token = token
 		self.user_id = user_id
 		api_response = make_request('users.get', self.user_id,self.token)
+		print('response: ', api_response)
 		if 'error' not in api_response.keys():
 			self.first_name = api_response['response'][0]['first_name']
 			self.last_name = api_response['response'][0]['last_name']
@@ -20,11 +21,22 @@ class VkUser():
 			self.last_name = api_response
 			self.friends = api_response
 
+	def __and__(self, target_user):
+		#self.target_user = target_user
+		full_url = 'https://api.vk.com/method/friends.getMutual' + '?source_uid=' + self.user_id + '&target_uid=' + target_user.user_id + '&v=5.52' + '&access_token=' + self.token
+		return requests.get(full_url).json()
+
+#	def __str__(self):
+
 	def friend_list_table(self):
 		if 'response' in self.friends.keys():
 				fr_list = []
 				for user in self.friends['response']['items']:
-					print('Id: ', user['id'],'last_name: ', user['last_name'])
+					if 'deactivated' in user:
+						print('Id: ', user['id'],'last_name: ', user['last_name'],'deactivated: ',user['deactivated'])
+					else:
+						print('Id: ', user['id'],'last_name: ', user['last_name'],'deactivated: no')
+					
 		else :
 			print('Error get friends:', self.friends)
 
@@ -42,11 +54,14 @@ class VkUser():
 			fr_list.append(self.friends)
 		return fr_list
 
-token = input('Введите токен: ')
+#token = input('Введите токен: ')
+token = 'b6437dac51769150c1953573d1dd2bb518b987b67af91eeb22b91e144a50c741198c191c887dd77bd9cdc'
 
 
 petrenko = VkUser('552646270',token)
 belousova = VkUser('552646270', token)
 
 
-print('Petrenko and bel mutual:', petrenko.get_mutual(bel.user_id))
+print('Petrenko and bel mutual:', petrenko.get_mutual(belousova.user_id))
+mutualuserlist = petrenko & belousova
+print('mutual 2: ', mutualuserlist)
