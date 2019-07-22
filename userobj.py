@@ -3,7 +3,7 @@ import json
 
 
 def make_request(method, user_id, access_token):
-	full_url = 'https://api.vk.com/method/' + method + '?user_id=' + user_id + '&v=5.52' + '&access_token=' + access_token + '&fields=city'
+	full_url = 'https://api.vk.com/method/' + method + '?user_id=' + user_id + '&v=5.52' + '&access_token=' + access_token + '&fields=city,photo_50'
 	return requests.get(full_url).json()
 
 class VkUser():
@@ -16,16 +16,25 @@ class VkUser():
 			self.first_name = api_response['response'][0]['first_name']
 			self.last_name = api_response['response'][0]['last_name']
 			self.friends = make_request('friends.get', self.user_id, self.token)
+			if 'photo_200' in api_response['response'][0]:
+				self.ava_url = api_response['response'][0]['photo_200']
 		else:
 			self.first_name = api_response
 			self.last_name = api_response
 			self.friends = api_response
 
 	def __and__(self, target_user):
-		#self.target_user = target_user
 		full_url = 'https://api.vk.com/method/friends.getMutual' + '?source_uid=' + self.user_id + '&target_uid=' + target_user.user_id + '&v=5.52' + '&access_token=' + self.token
 		return requests.get(full_url).json()
 
+	def get_photo(self):
+		r = requests.get(self.ava_url, stream=True)
+		self.photo_filename = self.first_name + '_' + self.last_name + '.jpg'
+		if r.status_code == 200:
+			with open(self.photo_filename, 'wb') as f:
+				for chunk in r:
+					f.write(chunk)
+		return self.photo_filename
 #	def __str__(self):
 
 	def friend_list_table(self):
@@ -54,12 +63,13 @@ class VkUser():
 			fr_list.append(self.friends)
 		return fr_list
 
-#token = input('Введите токен: ')
+token = input('Введите токен: ')
 
 
 
 petrenko = VkUser('552646270',token)
 belousova = VkUser('552646270', token)
+myuser = VkUser('552934290',token)
 
 
 print('Petrenko and bel mutual:', petrenko.get_mutual(belousova.user_id))
