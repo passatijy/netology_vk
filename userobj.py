@@ -1,5 +1,7 @@
 import requests
 import json
+import time
+from tqdm import tqdm
 
 
 def make_request(method, user_id, access_token):
@@ -11,7 +13,7 @@ class VkUser():
 		self.token = token
 		self.user_id = user_id
 		api_response = make_request('users.get', self.user_id,self.token)
-		print('response: ', api_response)
+		#print('response: ', api_response)
 		if 'error' not in api_response.keys():
 			self.first_name = api_response['response'][0]['first_name']
 			self.last_name = api_response['response'][0]['last_name']
@@ -25,7 +27,18 @@ class VkUser():
 
 	def __and__(self, target_user):
 		full_url = 'https://api.vk.com/method/friends.getMutual' + '?source_uid=' + self.user_id + '&target_uid=' + target_user.user_id + '&v=5.52' + '&access_token=' + self.token
-		return requests.get(full_url).json()
+		response = requests.get(full_url).json()
+		friend_obj_list = []
+		if 'error' not in response.keys():
+			k = 0 
+			for fr_id in tqdm(requests.get(full_url).json()['response']):
+				time.sleep(1)
+				friend_obj_list.append(VkUser(str(fr_id), token)) 
+		return friend_obj_list
+
+	def __str__(self):
+		url = 'https://vk.com/id' + self.user_id
+		return url
 
 	def get_photo(self):
 		r = requests.get(self.ava_url, stream=True)
@@ -63,15 +76,16 @@ class VkUser():
 			fr_list.append(self.friends)
 		return fr_list
 
+
+
 token = input('Введите токен: ')
-
-
-
 petrenko = VkUser('552646270',token)
 belousova = VkUser('552646270', token)
 myuser = VkUser('552934290',token)
 
 
-print('Petrenko and bel mutual:', petrenko.get_mutual(belousova.user_id))
-mutualuserlist = petrenko & belousova
-print('mutual 2: ', mutualuserlist)
+mutualuserlist = myuser & myuser
+print('mutual: ', mutualuserlist)
+for user in mutualuserlist:
+	print(user)
+
